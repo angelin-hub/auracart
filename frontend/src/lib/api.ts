@@ -1,3 +1,6 @@
+// Vite env types
+/// <reference types="vite/client" />
+
 import axios from "axios";
 
 // In production (Netlify), use the backend URL from env
