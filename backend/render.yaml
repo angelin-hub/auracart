@@ -4,7 +4,7 @@ services:
     env: node
     region: singapore
     buildCommand: npm install
-    startCommand: npx tsx src/index.ts
+    startCommand: ./node_modules/.bin/tsx src/index.ts
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -14,7 +14,7 @@ services:
         value: 7d
       - key: NODE_ENV
         value: production
-      - key: OPENAI_API_KEY
-        sync: false
       - key: FRONTEND_URL
+        value: "*"
+      - key: OPENAI_API_KEY
         sync: false
