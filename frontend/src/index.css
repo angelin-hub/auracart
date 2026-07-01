@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply box-border; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #0d0a07;
+    color: #f5ede0;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #0d0a07; }
+  ::-webkit-scrollbar-thumb { background: #3b2a14; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #FCCB06; }
+  ::selection { background: rgba(252,203,6,0.25); color: #f5ede0; }
+}
+
+@layer components {
+  /* ─── Glass card (cream glassmorphism) ─── */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(253,248,242,0.07) 0%, rgba(253,248,242,0.02) 100%);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(253,248,242,0.09);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(253,248,242,0.07);
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-400;
+  }
+  .glass-card-hover:hover {
+    background: linear-gradient(135deg, rgba(253,248,242,0.10) 0%, rgba(253,248,242,0.04) 100%);
+    border-color: rgba(252,203,6,0.3);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 40px rgba(252,203,6,0.12);
+    transform: translateY(-3px);
+  }
+
+  /* ─── Gold button ─── */
+  .btn-primary, .btn-gold {
+    @apply inline-flex items-center justify-center font-semibold rounded-xl px-6 py-3 transition-all duration-200;
+    background: linear-gradient(135deg, #c99600, #FCCB06, #e8b000);
+    background-size: 200% auto;
+    color: #0d0a07;
+    box-shadow: 0 4px 20px rgba(252,203,6,0.3);
+  }
+  .btn-primary:hover, .btn-gold:hover {
+    background-position: right center;
+    box-shadow: 0 6px 30px rgba(252,203,6,0.5);
+    transform: translateY(-1px);
+  }
+
+  /* ─── Dark button ─── */
+  .btn-navy {
+    @apply inline-flex items-center justify-center font-semibold rounded-xl px-6 py-3 transition-all duration-200;
+    background: rgba(253,248,242,0.08);
+    color: #f5ede0;
+    border: 1px solid rgba(253,248,242,0.15);
+  }
+  .btn-navy:hover {
+    background: rgba(253,248,242,0.14);
+    border-color: rgba(252,203,6,0.4);
+    transform: translateY(-1px);
+  }
+
+  /* ─── Outline button ─── */
+  .btn-outline {
+    @apply inline-flex items-center justify-center font-medium rounded-xl px-6 py-3 transition-all duration-200;
+    border: 1px solid rgba(253,248,242,0.2);
+    color: #f5ede0;
+  }
+  .btn-outline:hover {
+    background: rgba(253,248,242,0.06);
+    border-color: rgba(252,203,6,0.4);
+  }
+
+  /* ─── Input ─── */
+  .input-luxury {
+    @apply w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200;
+    background: rgba(253,248,242,0.06);
+    border: 1px solid rgba(253,248,242,0.12);
+    color: #f5ede0;
+  }
+  .input-luxury::placeholder { color: rgba(245,237,224,0.3); }
+  .input-luxury:focus {
+    background: rgba(253,248,242,0.09);
+    border-color: rgba(252,203,6,0.5);
+    box-shadow: 0 0 0 3px rgba(252,203,6,0.1);
+  }
+
+  /* ─── Product card ─── */
+  .product-card { @apply glass-card-hover rounded-2xl overflow-hidden cursor-pointer; }
+
+  /* ─── Shimmer ─── */
+  .shimmer {
+    background: linear-gradient(90deg, rgba(253,248,242,0.04) 0%, rgba(253,248,242,0.09) 50%, rgba(253,248,242,0.04) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  /* ─── Badge ─── */
+  .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-gold {
+    @apply badge;
+    background: linear-gradient(135deg, #c99600, #FCCB06);
+    color: #0d0a07;
+  }
+  .badge-aura, .badge-navy {
+    @apply badge;
+    background: rgba(252,203,6,0.12);
+    color: #FCCB06;
+    border: 1px solid rgba(252,203,6,0.25);
+  }
+
+  /* ─── Gradient text ─── */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #c99600, #FCCB06, #fdd84a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-aura-gradient { @apply text-gold-gradient; }
+  .text-navy-gradient { @apply text-gold-gradient; }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .duration-400 { transition-duration: 400ms; }
+  .bg-white\/8 { background-color: rgba(255,255,255,0.08); }
+}
