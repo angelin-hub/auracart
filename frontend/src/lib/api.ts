@@ -1,7 +1,13 @@
 import axios from "axios";
 
+// In production (Netlify), use the backend URL from env
+// In development, use the Vite proxy (/api → localhost:5000)
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : "/api";
+
 const api = axios.create({
-  baseURL: "/api",
+  baseURL,
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
@@ -9,9 +15,7 @@ const api = axios.create({
 // Attach token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("auracart_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -22,7 +26,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("auracart_token");
       localStorage.removeItem("auracart_user");
-      // Only redirect if not already on auth page
       if (!window.location.pathname.startsWith("/auth")) {
         window.location.href = "/auth/login";
       }
