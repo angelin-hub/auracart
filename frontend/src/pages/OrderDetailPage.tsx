@@ -5,14 +5,18 @@ import { useOrder } from "@/hooks/useOrders";
 import type { OrderStatus } from "@/types";
 import { toINR } from "@/lib/currency";
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  pending:    { label: "Pending",    color: "text-yellow-400 bg-yellow-400/10",  icon: <Clock size={14} /> },
-  confirmed:  { label: "Confirmed",  color: "text-blue-400 bg-blue-400/10",     icon: <CheckCircle2 size={14} /> },
-  processing: { label: "Processing", color: "text-purple-400 bg-purple-400/10", icon: <RefreshCw size={14} /> },
-  shipped:    { label: "Shipped",    color: "text-aura-300 bg-aura-400/10",     icon: <Truck size={14} /> },
-  delivered:  { label: "Delivered",  color: "text-emerald-400 bg-emerald-400/10", icon: <CheckCircle2 size={14} /> },
-  cancelled:  { label: "Cancelled",  color: "text-red-400 bg-red-400/10",       icon: <XCircle size={14} /> },
-  refunded:   { label: "Refunded",   color: "text-orange-400 bg-orange-400/10", icon: <RefreshCw size={14} /> },
+const DARK  = "#2c2320";
+const BLUSH = "#c47a80";
+const CREAM = "#f9f4ef";
+
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+  pending:    { label: "Pending",    color: "#d4a020", bg: "rgba(212,160,32,0.1)",   icon: <Clock size={14} /> },
+  confirmed:  { label: "Confirmed",  color: "#3b82f6", bg: "rgba(59,130,246,0.1)",   icon: <CheckCircle2 size={14} /> },
+  processing: { label: "Processing", color: "#8b5cf6", bg: "rgba(139,92,246,0.1)",   icon: <RefreshCw size={14} /> },
+  shipped:    { label: "Shipped",    color: BLUSH,     bg: "rgba(196,122,128,0.1)",  icon: <Truck size={14} /> },
+  delivered:  { label: "Delivered",  color: "#22c55e", bg: "rgba(34,197,94,0.1)",    icon: <CheckCircle2 size={14} /> },
+  cancelled:  { label: "Cancelled",  color: "#ef4444", bg: "rgba(239,68,68,0.1)",    icon: <XCircle size={14} /> },
+  refunded:   { label: "Refunded",   color: "#f97316", bg: "rgba(249,115,22,0.1)",   icon: <RefreshCw size={14} /> },
 };
 
 const STEPS: OrderStatus[] = ["confirmed", "processing", "shipped", "delivered"];
@@ -24,7 +28,7 @@ export default function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 px-4">
+      <div className="min-h-screen pt-24 px-4" style={{ background: CREAM }}>
         <div className="max-w-3xl mx-auto space-y-4">
           <div className="h-8 shimmer rounded w-1/3" />
           <div className="h-48 shimmer rounded-3xl" />
@@ -36,11 +40,11 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center text-center">
+      <div className="min-h-screen pt-24 flex items-center justify-center text-center" style={{ background: CREAM }}>
         <div>
-          <Package size={48} className="text-white/20 mx-auto mb-4" />
-          <p className="text-white/50 text-xl">Order not found</p>
-          <Link to="/orders" className="mt-4 inline-block text-aura-300 hover:underline">← My orders</Link>
+          <Package size={48} style={{ color: "rgba(44,35,32,0.2)" }} className="mx-auto mb-4" />
+          <p className="text-xl mb-4 font-display" style={{ color: "rgba(44,35,32,0.5)" }}>Order not found</p>
+          <Link to="/orders" className="btn-primary">← My Orders</Link>
         </div>
       </div>
     );
@@ -50,73 +54,79 @@ export default function OrderDetailPage() {
   const currentStepIdx = STEPS.indexOf(order.status);
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
+    <div className="min-h-screen pt-24 pb-16 px-4" style={{ background: CREAM }}>
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-6"
-          >
-            <ArrowLeft size={15} />
-            Back to orders
+          <button onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-sm mb-6 transition-colors"
+            style={{ color: "rgba(44,35,32,0.45)" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = DARK}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "rgba(44,35,32,0.45)"}>
+            <ArrowLeft size={15} /> Back to orders
           </button>
 
           <div className="flex items-start justify-between flex-wrap gap-3 mb-8">
             <div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-white">
+              <h1 className="font-display text-2xl md:text-3xl font-semibold" style={{ color: DARK }}>
                 {order.orderNumber}
               </h1>
-              <p className="text-white/40 text-sm mt-1">
-                Placed {new Date(order.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric", month: "long", day: "numeric"
+              <p className="text-sm mt-1" style={{ color: "rgba(44,35,32,0.45)" }}>
+                Placed {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                  year: "numeric", month: "long", day: "numeric",
                 })}
               </p>
             </div>
-            <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${status.color}`}>
-              {status.icon}
-              {status.label}
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium"
+              style={{ color: status.color, background: status.bg }}>
+              {status.icon} {status.label}
             </span>
           </div>
 
-          {/* Progress tracker */}
-          {!["cancelled", "refunded"].includes(order.status) && (
-            <div className="glass-card rounded-3xl p-6 mb-4">
-              <h2 className="font-semibold text-white/70 text-sm mb-5">Order Progress</h2>
+          {/* Progress */}
+          {!["cancelled","refunded"].includes(order.status) && (
+            <div className="rounded-2xl p-6 mb-4"
+              style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+              <h2 className="font-semibold text-sm mb-5" style={{ color: "rgba(44,35,32,0.6)" }}>
+                Order Progress
+              </h2>
               <div className="flex items-center">
                 {STEPS.map((step, i) => {
                   const isCompleted = currentStepIdx >= i;
-                  const isCurrent = currentStepIdx === i;
-                  const stepStatus = STATUS_CONFIG[step];
+                  const isCurrent   = currentStepIdx === i;
+                  const stepStatus  = STATUS_CONFIG[step];
                   return (
                     <div key={step} className="flex items-center flex-1">
                       <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                          isCompleted ? "bg-aura-500 text-white" : "bg-white/10 text-white/20"
-                        } ${isCurrent ? "ring-2 ring-aura-400 ring-offset-2 ring-offset-transparent" : ""}`}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                          style={{
+                            background: isCompleted ? BLUSH : "rgba(44,35,32,0.08)",
+                            color: isCompleted ? "white" : "rgba(44,35,32,0.3)",
+                            boxShadow: isCurrent ? `0 0 0 3px rgba(196,122,128,0.3)` : "none",
+                          }}>
                           {stepStatus.icon}
                         </div>
-                        <span className={`text-[10px] mt-1.5 font-medium ${
-                          isCompleted ? "text-white/60" : "text-white/20"
-                        }`}>{stepStatus.label}</span>
+                        <span className="text-[10px] mt-1.5 font-medium"
+                          style={{ color: isCompleted ? DARK : "rgba(44,35,32,0.3)" }}>
+                          {stepStatus.label}
+                        </span>
                       </div>
                       {i < STEPS.length - 1 && (
-                        <div className={`flex-1 h-px mx-1 transition-all ${
-                          currentStepIdx > i ? "bg-aura-500" : "bg-white/10"
-                        }`} />
+                        <div className="flex-1 h-px mx-1 transition-all"
+                          style={{ background: currentStepIdx > i ? BLUSH : "rgba(44,35,32,0.1)" }} />
                       )}
                     </div>
                   );
                 })}
               </div>
               {order.estimatedDelivery && (
-                <p className="text-xs text-white/30 mt-4 text-center">
-                  Estimated delivery: {new Date(order.estimatedDelivery).toLocaleDateString("en-US", {
-                    weekday: "long", month: "long", day: "numeric"
+                <p className="text-xs text-center mt-4" style={{ color: "rgba(44,35,32,0.4)" }}>
+                  Estimated delivery: {new Date(order.estimatedDelivery).toLocaleDateString("en-IN", {
+                    weekday: "long", month: "long", day: "numeric",
                   })}
                 </p>
               )}
               {order.trackingNumber && (
-                <p className="text-xs text-aura-300 mt-1 text-center">
+                <p className="text-xs text-center mt-1" style={{ color: BLUSH }}>
                   Tracking: {order.trackingNumber}
                 </p>
               )}
@@ -124,27 +134,29 @@ export default function OrderDetailPage() {
           )}
 
           {/* Items */}
-          <div className="glass-card rounded-3xl p-6 mb-4">
-            <h2 className="font-semibold text-white mb-4">Order Items</h2>
+          <div className="rounded-2xl p-6 mb-4"
+            style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+            <h2 className="font-semibold mb-4" style={{ color: DARK }}>Order Items</h2>
             <div className="space-y-3">
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-white/5 flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"
+                    style={{ background: "#f0e8e0" }}>
                     {item.productImage ? (
                       <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package size={16} className="text-white/20" />
+                        <Package size={16} style={{ color: "rgba(44,35,32,0.2)" }} />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white/90 truncate">{item.productName}</p>
-                    <p className="text-xs text-white/30">
+                    <p className="text-sm font-medium truncate" style={{ color: DARK }}>{item.productName}</p>
+                    <p className="text-xs" style={{ color: "rgba(44,35,32,0.4)" }}>
                       {toINR(item.price)} × {item.quantity}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold text-white flex-shrink-0">
+                  <p className="text-sm font-semibold flex-shrink-0" style={{ color: DARK }}>
                     {toINR(item.total)}
                   </p>
                 </div>
@@ -152,44 +164,44 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Grid: Address + Summary */}
+          {/* Address + Summary */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-card rounded-3xl p-5">
-              <div className="flex items-center gap-2 text-white/60 text-sm font-medium mb-3">
-                <MapPin size={15} />
-                Shipping Address
+            <div className="rounded-2xl p-5"
+              style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+              <div className="flex items-center gap-2 text-sm font-medium mb-3"
+                style={{ color: "rgba(44,35,32,0.5)" }}>
+                <MapPin size={15} style={{ color: BLUSH }} /> Shipping Address
               </div>
-              <p className="text-sm text-white/80">{order.shippingAddress.name}</p>
-              <p className="text-sm text-white/50 mt-0.5">
+              <p className="text-sm font-medium" style={{ color: DARK }}>{order.shippingAddress.name}</p>
+              <p className="text-sm mt-0.5" style={{ color: "rgba(44,35,32,0.5)" }}>
                 {order.shippingAddress.line1}
                 {order.shippingAddress.line2 ? `, ${order.shippingAddress.line2}` : ""}
               </p>
-              <p className="text-sm text-white/50">
+              <p className="text-sm" style={{ color: "rgba(44,35,32,0.5)" }}>
                 {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
               </p>
             </div>
 
-            <div className="glass-card rounded-3xl p-5">
-              <div className="flex items-center gap-2 text-white/60 text-sm font-medium mb-3">
-                <CreditCard size={15} />
-                Payment Summary
+            <div className="rounded-2xl p-5"
+              style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+              <div className="flex items-center gap-2 text-sm font-medium mb-3"
+                style={{ color: "rgba(44,35,32,0.5)" }}>
+                <CreditCard size={15} style={{ color: BLUSH }} /> Payment Summary
               </div>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between text-white/50">
-                  <span>Subtotal</span>
-                  <span>{toINR(order.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-white/50">
-                  <span>Tax</span>
-                  <span>{toINR(order.tax)}</span>
-                </div>
-                <div className="flex justify-between text-white/50">
-                  <span>Delivery</span>
-                  <span>{parseFloat(order.shipping) === 0 ? "Free" : toINR(order.shipping)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-white pt-2 border-t border-white/10">
+                {[
+                  { label: "Subtotal", val: toINR(order.subtotal) },
+                  { label: "Tax",      val: toINR(order.tax) },
+                  { label: "Delivery", val: parseFloat(order.shipping) === 0 ? "Free" : toINR(order.shipping) },
+                ].map(row => (
+                  <div key={row.label} className="flex justify-between" style={{ color: "rgba(44,35,32,0.5)" }}>
+                    <span>{row.label}</span><span>{row.val}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between font-semibold pt-2"
+                  style={{ borderTop: "1px solid rgba(44,35,32,0.08)", color: DARK }}>
                   <span>Total</span>
-                  <span className="text-gold-400">{toINR(order.total)}</span>
+                  <span style={{ color: BLUSH }}>{toINR(order.total)}</span>
                 </div>
               </div>
             </div>

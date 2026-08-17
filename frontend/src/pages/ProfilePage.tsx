@@ -5,6 +5,10 @@ import { useAuthStore } from "@/store/authStore";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 
+const DARK  = "#2c2320";
+const BLUSH = "#c47a80";
+const CREAM = "#f9f4ef";
+
 export default function ProfilePage() {
   const { user, updateUser } = useAuthStore();
   const [tab, setTab] = useState<"profile" | "password">("profile");
@@ -48,153 +52,105 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
+    <div className="min-h-screen pt-24 pb-16 px-4" style={{ background: CREAM }}>
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <h1 className="font-display text-3xl md:text-4xl font-bold text-white mb-2">
-            My <span className="text-gold-gradient">Profile</span>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: BLUSH }}>
+            Account
+          </p>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold" style={{ color: DARK }}>
+            My Profile
           </h1>
-          <p className="text-white/40 text-sm">Manage your account settings</p>
+          <p className="text-sm mt-1" style={{ color: "rgba(44,35,32,0.45)" }}>Manage your account settings</p>
         </motion.div>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
           {[
-            { id: "profile" as const, label: "Profile", icon: <User size={15} /> },
+            { id: "profile" as const,  label: "Profile",  icon: <User size={15} /> },
             { id: "password" as const, label: "Password", icon: <Lock size={15} /> },
           ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                tab === t.id
-                  ? "bg-aura-500/20 text-aura-200 border border-aura-400/30"
-                  : "text-white/50 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              {t.icon}
-              {t.label}
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              style={tab === t.id
+                ? { background: "rgba(196,122,128,0.1)", color: BLUSH, border: "1px solid rgba(196,122,128,0.3)" }
+                : { color: "rgba(44,35,32,0.5)", border: "1px solid transparent" }}>
+              {t.icon} {t.label}
             </button>
           ))}
         </div>
 
-        {/* User avatar summary */}
-        <div className="glass-card rounded-3xl p-6 mb-6 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-aura-400 to-aura-600 flex items-center justify-center text-white text-2xl font-bold shadow-glow">
+        {/* User summary */}
+        <div className="rounded-2xl p-5 mb-5 flex items-center gap-4"
+          style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-semibold flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #c47a80, #d4909a)" }}>
             {user?.name?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="font-semibold text-white text-lg">{user?.name}</p>
-            <p className="text-white/40 text-sm">{user?.email}</p>
-            <span className={`badge mt-1 ${user?.role === "admin" ? "badge-gold" : "badge-aura"}`}>
-              {user?.role}
-            </span>
+            <p className="font-display font-semibold text-lg" style={{ color: DARK }}>{user?.name}</p>
+            <p className="text-sm" style={{ color: "rgba(44,35,32,0.45)" }}>{user?.email}</p>
+            <span className="badge-blush mt-1.5 inline-block">{user?.role}</span>
           </div>
         </div>
 
         {tab === "profile" ? (
-          <motion.div
-            key="profile"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="glass-card rounded-3xl p-6 md:p-8"
-          >
-            <h2 className="font-semibold text-white mb-6">Personal Information</h2>
+          <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="rounded-2xl p-6 md:p-8"
+            style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+            <h2 className="font-semibold mb-6" style={{ color: DARK }}>Personal Information</h2>
             <form onSubmit={handleUpdateProfile} className="space-y-5" noValidate>
               <div>
-                <label htmlFor="prof-name" className="block text-sm text-white/50 mb-1.5">Full name</label>
-                <input
-                  id="prof-name"
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="input-luxury"
-                  required
-                />
+                <label htmlFor="prof-name" className="block text-sm font-medium mb-1.5"
+                  style={{ color: "rgba(44,35,32,0.65)" }}>Full name</label>
+                <input id="prof-name" type="text" value={form.name}
+                  onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="input-luxury" required />
               </div>
               <div>
-                <label htmlFor="prof-email" className="block text-sm text-white/50 mb-1.5">Email address</label>
-                <input
-                  id="prof-email"
-                  type="email"
-                  value={user?.email ?? ""}
-                  className="input-luxury opacity-50 cursor-not-allowed"
-                  disabled
-                  title="Email cannot be changed"
-                />
+                <label htmlFor="prof-email" className="block text-sm font-medium mb-1.5"
+                  style={{ color: "rgba(44,35,32,0.65)" }}>Email address</label>
+                <input id="prof-email" type="email" value={user?.email ?? ""}
+                  className="input-luxury opacity-50 cursor-not-allowed" disabled
+                  title="Email cannot be changed" />
               </div>
               <div>
-                <label htmlFor="avatar" className="block text-sm text-white/50 mb-1.5">Avatar URL</label>
-                <input
-                  id="avatar"
-                  type="url"
-                  value={form.avatar}
-                  onChange={(e) => setForm((f) => ({ ...f, avatar: e.target.value }))}
-                  className="input-luxury"
-                  placeholder="https://example.com/avatar.jpg"
-                />
+                <label htmlFor="avatar" className="block text-sm font-medium mb-1.5"
+                  style={{ color: "rgba(44,35,32,0.65)" }}>Avatar URL</label>
+                <input id="avatar" type="url" value={form.avatar}
+                  onChange={(e) => setForm(f => ({ ...f, avatar: e.target.value }))}
+                  className="input-luxury" placeholder="https://example.com/avatar.jpg" />
               </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-gold flex items-center gap-2 px-6 py-3 rounded-xl font-semibold disabled:opacity-50"
-              >
+              <button type="submit" disabled={loading}
+                className="btn-primary flex items-center gap-2 px-6 py-3 rounded-xl disabled:opacity-50">
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                 Save Changes
               </button>
             </form>
           </motion.div>
         ) : (
-          <motion.div
-            key="password"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="glass-card rounded-3xl p-6 md:p-8"
-          >
-            <h2 className="font-semibold text-white mb-6">Change Password</h2>
+          <motion.div key="password" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="rounded-2xl p-6 md:p-8"
+            style={{ background: "white", border: "1px solid rgba(44,35,32,0.08)" }}>
+            <h2 className="font-semibold mb-6" style={{ color: DARK }}>Change Password</h2>
             <form onSubmit={handleChangePassword} className="space-y-5" noValidate>
-              <div>
-                <label htmlFor="current-pass" className="block text-sm text-white/50 mb-1.5">Current password</label>
-                <input
-                  id="current-pass"
-                  type="password"
-                  value={passwords.current}
-                  onChange={(e) => setPasswords((p) => ({ ...p, current: e.target.value }))}
-                  className="input-luxury"
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="new-pass" className="block text-sm text-white/50 mb-1.5">New password</label>
-                <input
-                  id="new-pass"
-                  type="password"
-                  value={passwords.newPass}
-                  onChange={(e) => setPasswords((p) => ({ ...p, newPass: e.target.value }))}
-                  className="input-luxury"
-                  autoComplete="new-password"
-                  minLength={8}
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="confirm-pass" className="block text-sm text-white/50 mb-1.5">Confirm new password</label>
-                <input
-                  id="confirm-pass"
-                  type="password"
-                  value={passwords.confirm}
-                  onChange={(e) => setPasswords((p) => ({ ...p, confirm: e.target.value }))}
-                  className="input-luxury"
-                  autoComplete="new-password"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
+              {[
+                { id: "current-pass", label: "Current password", key: "current" as const, auto: "current-password" },
+                { id: "new-pass",     label: "New password",     key: "newPass"  as const, auto: "new-password", min: 8 },
+                { id: "confirm-pass", label: "Confirm new",      key: "confirm"  as const, auto: "new-password" },
+              ].map(f => (
+                <div key={f.id}>
+                  <label htmlFor={f.id} className="block text-sm font-medium mb-1.5"
+                    style={{ color: "rgba(44,35,32,0.65)" }}>{f.label}</label>
+                  <input id={f.id} type="password" value={passwords[f.key]}
+                    onChange={(e) => setPasswords(p => ({ ...p, [f.key]: e.target.value }))}
+                    className="input-luxury" autoComplete={f.auto}
+                    minLength={f.min} required />
+                </div>
+              ))}
+              <button type="submit"
                 disabled={loading || !passwords.current || !passwords.newPass || !passwords.confirm}
-                className="btn-gold flex items-center gap-2 px-6 py-3 rounded-xl font-semibold disabled:opacity-50"
-              >
+                className="btn-primary flex items-center gap-2 px-6 py-3 rounded-xl disabled:opacity-50">
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
                 Update Password
               </button>

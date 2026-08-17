@@ -136,14 +136,14 @@ export default function SearchModal() {
 
               {!query && (
                 <div className="p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(34,46,80,0.35)" }}>Trending</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(44,35,32,0.35)" }}>Trending</p>
                   <div className="flex flex-wrap gap-2">
-                    {["Luxury Watch","Premium Headphones","Gaming Setup","Skincare"].map(term => (
+                    {["Floral Dress","Anarkali Kurti","Silk Saree","Co-ord Set","Party Wear"].map(term => (
                       <button key={term} onClick={() => setQuery(term)}
                         className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                        style={{ background: "rgba(34,46,80,0.06)", color: "#222E50", border: "1px solid rgba(34,46,80,0.1)" }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(252,203,6,0.15)"}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(34,46,80,0.06)"}>
+                        style={{ background: "rgba(44,35,32,0.06)", color: "#2c2320", border: "1px solid rgba(44,35,32,0.1)" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(196,122,128,0.12)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(44,35,32,0.06)"}>
                         {term}
                       </button>
                     ))}
