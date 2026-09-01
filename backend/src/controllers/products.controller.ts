@@ -138,6 +138,55 @@ export const getCategories = async (_req: Request, res: Response): Promise<void>
   res.json({ success: true, data: { categories: cats } });
 };
 
+export const createCategory = async (req: Request, res: Response): Promise<void> => {
+  const { name, slug, description, imageUrl, parentId } = req.body;
+  if (!name || !slug) throw new AppError(400, "Name and slug are required");
+
+  // check for duplicate slug
+  const [existing] = await db.select({ id: categories.id }).from(categories)
+    .where(eq(categories.slug, slug)).limit(1);
+  if (existing) throw new AppError(409, "A category with this slug already exists");
+
+  const [category] = await db.insert(categories)
+    .values({ name, slug, description: description || null, imageUrl: imageUrl || null, parentId: parentId || null })
+    .returning();
+
+  res.status(201).json({ success: true, data: { category } });
+};
+
+export const updateCategory = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { name, slug, description, imageUrl, parentId } = req.body;
+
+  if (slug) {
+    const [conflict] = await db.select({ id: categories.id }).from(categories)
+      .where(eq(categories.slug, slug)).limit(1);
+    if (conflict && conflict.id !== id) throw new AppError(409, "Slug already in use");
+  }
+
+  const [category] = await db.update(categories)
+    .set({
+      ...(name        !== undefined && { name }),
+      ...(slug        !== undefined && { slug }),
+      ...(description !== undefined && { description }),
+      ...(imageUrl    !== undefined && { imageUrl }),
+      ...(parentId    !== undefined && { parentId }),
+    })
+    .where(eq(categories.id, id))
+    .returning();
+
+  if (!category) throw new AppError(404, "Category not found");
+  res.json({ success: true, data: { category } });
+};
+
+export const deleteCategory = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  // Nullify categoryId on products that use this category before deleting
+  await db.update(products).set({ categoryId: null } as any).where(eq(products.categoryId, id));
+  await db.delete(categories).where(eq(categories.id, id));
+  res.json({ success: true, message: "Category deleted" });
+};
+
 // ── Admin CRUD ────────────────────────────────────────────────────────────────
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   const data = req.body;

@@ -5,6 +5,9 @@ import {
   getProductBySlug,
   getFeaturedProducts,
   getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -22,7 +25,12 @@ router.get("/categories", wrap(getCategories));
 router.get("/admin/all", authenticate, requireAdmin, wrap(getAdminProducts));
 router.get("/:slug", wrap(getProductBySlug));
 
-// Admin
+// Category admin CRUD
+router.post("/categories", authenticate, requireAdmin, wrap(createCategory));
+router.put("/categories/:id", authenticate, requireAdmin, wrap(updateCategory));
+router.delete("/categories/:id", authenticate, requireAdmin, wrap(deleteCategory));
+
+// Product admin CRUD
 router.post("/", authenticate, requireAdmin, wrap(createProduct));
 router.put("/:id", authenticate, requireAdmin, wrap(updateProduct));
 router.delete("/:id", authenticate, requireAdmin, wrap(deleteProduct));
