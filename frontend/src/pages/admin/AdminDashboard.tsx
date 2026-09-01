@@ -1,172 +1,444 @@
-import { motion } from "framer-motion";
-import {
-  DollarSign, ShoppingBag, Users, Package,
-  TrendingUp, ArrowRight
-} from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  Package,
+  ShoppingBag,
+  Users,
+  DollarSign,
+  Plus,
+  ArrowRight,
+  TrendingUp,
+  AlertTriangle,
+  Warehouse,
+} from "lucide-react";
 import { useAdminStats } from "@/hooks/useOrders";
-import type { OrderStatus } from "@/types";
+import { useAdminProducts } from "@/hooks/useProducts";
 import { toINR } from "@/lib/currency";
 
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending:    "text-yellow-400",
-  confirmed:  "text-blue-400",
-  processing: "text-purple-400",
-  shipped:    "text-aura-300",
-  delivered:  "text-emerald-400",
-  cancelled:  "text-red-400",
-  refunded:   "text-orange-400",
+// ── Design tokens ──────────────────────────────────────────────────────────────
+const CARD_STYLE: React.CSSProperties = {
+  backgroundColor: "white",
+  border: "1px solid rgba(44,35,32,0.08)",
+  boxShadow: "0 2px 8px rgba(44,35,32,0.06)",
+  borderRadius: 16,
 };
 
-export default function AdminDashboard() {
-  const { data, isLoading } = useAdminStats();
+const STATUS_BADGE: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
+  pending:    { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
+  confirmed:  { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
+  processing: { bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" },
+  shipped:    { bg: "#fff1f2", text: "#be123c", border: "#fecdd3" },
+  delivered:  { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
+  cancelled:  { bg: "#fef2f2", text: "#b91c1c", border: "#fecaca" },
+  refunded:   { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
+};
 
-  const stats = [
-    {
-      label: "Total Revenue",
-      value: data ? toINR(data.stats.totalRevenue) : "—",
-      icon: <DollarSign size={20} />,
-      color: "from-gold-400 to-gold-600",
-      bg: "bg-gold-400/10",
-    },
-    {
-      label: "Total Orders",
-      value: data ? data.stats.totalOrders.toLocaleString() : "—",
-      icon: <ShoppingBag size={20} />,
-      color: "from-aura-400 to-aura-600",
-      bg: "bg-aura-400/10",
-    },
-    {
-      label: "Customers",
-      value: data ? data.stats.totalUsers.toLocaleString() : "—",
-      icon: <Users size={20} />,
-      color: "from-emerald-400 to-emerald-600",
-      bg: "bg-emerald-400/10",
-    },
-    {
-      label: "Products",
-      value: data ? data.stats.totalProducts.toLocaleString() : "—",
-      icon: <Package size={20} />,
-      color: "from-purple-400 to-purple-600",
-      bg: "bg-purple-400/10",
-    },
-  ];
+
+
+
+// ── Skeleton ───────────────────────────────────────────────────────────────────
+function Skeleton({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse rounded-lg ${className}`}
+      style={{ backgroundColor: "rgba(44,35,32,0.07)" }}
+    />
+  );
+}
+
+// ── Stat Card ─────────────────────────────────────────────────────────────────
+interface StatCardProps {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  loading: boolean;
+}
+function StatCard({ label, value, icon, loading }: StatCardProps) {
+  return (
+    <div style={CARD_STYLE} className="p-5">
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton className="w-11 h-11" />
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+      ) : (
+        <>
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center mb-3"
+            style={{ backgroundColor: "rgba(196,122,128,0.12)" }}
+          >
+            <span style={{ color: "#c47a80" }}>{icon}</span>
+          </div>
+          <p className="text-2xl font-bold" style={{ color: "#2c2320" }}>
+            {value}
+          </p>
+          <p className="text-sm mt-0.5" style={{ color: "rgba(44,35,32,0.5)" }}>
+            {label}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Status Badge ──────────────────────────────────────────────────────────────
+function StatusBadge({ status }: { status: string }) {
+  const colors = STATUS_BADGE[status] ?? STATUS_BADGE["pending"];
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full text-xs font-medium px-2.5 py-0.5 border capitalize"
+      style={{
+        backgroundColor: colors.bg,
+        color: colors.text,
+        borderColor: colors.border,
+      }}
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        style={{ backgroundColor: colors.text }}
+      />
+      {status}
+    </span>
+  );
+}
+
+// ── CSS Bar Chart ─────────────────────────────────────────────────────────────
+const MOCK_BARS = [
+  { label: "Mon", value: 65 },
+  { label: "Tue", value: 80 },
+  { label: "Wed", value: 45 },
+  { label: "Thu", value: 90 },
+  { label: "Fri", value: 72 },
+  { label: "Sat", value: 55 },
+  { label: "Sun", value: 38 },
+];
+
+function SalesChart() {
+  return (
+    <div style={CARD_STYLE} className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="font-semibold" style={{ color: "#2c2320" }}>
+            Sales Overview
+          </h3>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(44,35,32,0.4)" }}>
+            Last 7 days activity
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <TrendingUp size={14} style={{ color: "#22c55e" }} />
+          <span className="text-sm font-medium" style={{ color: "#22c55e" }}>
+            +12.4%
+          </span>
+        </div>
+      </div>
+      <div className="flex items-end gap-2 sm:gap-3 h-32">
+        {MOCK_BARS.map((bar) => (
+          <div
+            key={bar.label}
+            className="flex-1 flex flex-col items-center gap-2"
+          >
+            <div
+              className="w-full rounded-t-md"
+              style={{
+                height: `${bar.value}%`,
+                backgroundColor: "#c47a80",
+                opacity: 0.3 + (bar.value / 100) * 0.7,
+              }}
+            />
+            <span
+              className="text-[10px] font-medium"
+              style={{ color: "rgba(44,35,32,0.4)" }}
+            >
+              {bar.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Recent Order row type ─────────────────────────────────────────────────────
+interface RecentOrder {
+  id: string;
+  orderNumber: string;
+  userName?: string;
+  total: string | number;
+  status: string;
+  createdAt: string;
+}
+
+// ── Main Dashboard ────────────────────────────────────────────────────────────
+export default function AdminDashboard() {
+  const { data: statsData, isLoading: statsLoading } = useAdminStats();
+  const { data: productsData, isLoading: productsLoading } = useAdminProducts({
+    page: 1,
+  });
+
+  const stats = statsData?.stats;
+  const recentOrders: RecentOrder[] = statsData?.recentOrders ?? [];
+  const lowStockProducts =
+    productsData?.products.filter((p) => p.stock < 10) ?? [];
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
-      <div className="max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="badge-gold text-xs px-2 py-0.5">Admin</span>
-          </div>
-          <h1 className="font-display text-3xl md:text-4xl font-bold text-white">
-            Dashboard
-          </h1>
-          <p className="text-white/40 text-sm mt-1">Welcome back. Here's what's happening.</p>
-        </motion.div>
+    <div
+      className="p-4 sm:p-6 lg:p-8"
+      style={{ backgroundColor: "#f9f4ef", minHeight: "100%" }}
+    >
+      {/* Welcome header */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold" style={{ color: "#2c2320" }}>
+          Welcome back 👋
+        </h2>
+        <p className="text-sm mt-1" style={{ color: "rgba(44,35,32,0.5)" }}>
+          Here's what's happening at Yehovah Boutique today.
+        </p>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              className="glass-card rounded-2xl p-5"
-            >
-              {isLoading ? (
-                <div className="space-y-3">
-                  <div className="w-10 h-10 shimmer rounded-xl" />
-                  <div className="h-7 shimmer rounded w-1/2" />
-                  <div className="h-4 shimmer rounded w-2/3" />
-                </div>
-              ) : (
-                <>
-                  <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
-                    <span className={`bg-gradient-to-br ${stat.color} bg-clip-text text-transparent`}>
-                      {stat.icon}
-                    </span>
-                  </div>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
-                  <p className="text-xs text-white/40 mt-0.5">{stat.label}</p>
-                </>
-              )}
-            </motion.div>
-          ))}
-        </div>
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Total Products"
+          value={stats ? stats.totalProducts.toLocaleString() : "—"}
+          icon={<Package size={20} />}
+          loading={statsLoading}
+        />
+        <StatCard
+          label="Total Orders"
+          value={stats ? stats.totalOrders.toLocaleString() : "—"}
+          icon={<ShoppingBag size={20} />}
+          loading={statsLoading}
+        />
+        <StatCard
+          label="Total Customers"
+          value={stats ? stats.totalUsers.toLocaleString() : "—"}
+          icon={<Users size={20} />}
+          loading={statsLoading}
+        />
+        <StatCard
+          label="Total Revenue"
+          value={stats ? toINR(stats.totalRevenue) : "—"}
+          icon={<DollarSign size={20} />}
+          loading={statsLoading}
+        />
+      </div>
 
-        {/* Quick links */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {[
-            { label: "Manage Products", desc: "Add, edit, or remove products", href: "/admin/products", icon: <Package size={18} /> },
-            { label: "Manage Orders", desc: "View and update order status", href: "/admin/orders", icon: <ShoppingBag size={18} /> },
-            { label: "Analytics", desc: "Revenue and performance metrics", href: "#", icon: <TrendingUp size={18} /> },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className="glass-card-hover rounded-2xl p-5 flex items-center gap-4 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-aura-500/10 flex items-center justify-center text-aura-300 flex-shrink-0">
-                {link.icon}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-white text-sm">{link.label}</p>
-                <p className="text-xs text-white/30 mt-0.5">{link.desc}</p>
-              </div>
-              <ArrowRight size={16} className="text-white/20 group-hover:text-white/50 transition-colors" />
-            </Link>
-          ))}
-        </div>
-
+      {/* 3-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass-card rounded-3xl p-6"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-white">Recent Orders</h2>
-            <Link to="/admin/orders" className="text-sm text-aura-300 hover:text-aura-200 flex items-center gap-1">
-              View all <ArrowRight size={14} />
+        <div style={CARD_STYLE} className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold" style={{ color: "#2c2320" }}>
+              Recent Orders
+            </h3>
+            <Link
+              to="/admin/orders"
+              className="text-xs flex items-center gap-1 hover:opacity-70 transition-opacity"
+              style={{ color: "#c47a80" }}
+            >
+              View all <ArrowRight size={12} />
             </Link>
           </div>
 
-          {isLoading ? (
+          {statsLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-12 shimmer rounded-xl" />)}
-            </div>
-          ) : data?.recentOrders.length ? (
-            <div className="space-y-2">
-              {data.recentOrders.map((order: any) => (
-                <Link
-                  key={order.id}
-                  to={`/orders/${order.id}`}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/3 transition-colors group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                    <ShoppingBag size={14} className="text-white/30" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white/80 truncate">{order.orderNumber}</p>
-                    <p className="text-xs text-white/30">{order.userName}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-semibold text-white">{toINR(order.total)}</p>
-                    <p className={`text-xs capitalize ${STATUS_COLORS[order.status as OrderStatus] || "text-white/40"}`}>
-                      {order.status}
-                    </p>
-                  </div>
-                </Link>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full" />
               ))}
             </div>
+          ) : recentOrders.length === 0 ? (
+            <p
+              className="text-center py-8 text-sm"
+              style={{ color: "rgba(44,35,32,0.35)" }}
+            >
+              No recent orders
+            </p>
           ) : (
-            <p className="text-white/30 text-sm text-center py-8">No orders yet</p>
+            <div className="space-y-0">
+              {recentOrders.slice(0, 5).map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between py-3"
+                  style={{ borderBottom: "1px solid rgba(44,35,32,0.06)" }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-sm font-medium truncate"
+                      style={{ color: "#2c2320" }}
+                    >
+                      {order.orderNumber}
+                    </p>
+                    <p
+                      className="text-xs truncate mt-0.5"
+                      style={{ color: "rgba(44,35,32,0.4)" }}
+                    >
+                      {order.userName ?? "Customer"}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 text-right ml-3">
+                    <p
+                      className="text-sm font-semibold mb-1"
+                      style={{ color: "#2c2320" }}
+                    >
+                      {toINR(order.total)}
+                    </p>
+                    <StatusBadge status={order.status} />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-        </motion.div>
+        </div>
+
+        {/* Low Stock Products */}
+        <div style={CARD_STYLE} className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold" style={{ color: "#2c2320" }}>
+              Low Stock
+            </h3>
+            <Link
+              to="/admin/inventory"
+              className="text-xs flex items-center gap-1 hover:opacity-70 transition-opacity"
+              style={{ color: "#c47a80" }}
+            >
+              Manage <ArrowRight size={12} />
+            </Link>
+          </div>
+
+          {productsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : lowStockProducts.length === 0 ? (
+            <p
+              className="text-center py-8 text-sm"
+              style={{ color: "rgba(44,35,32,0.35)" }}
+            >
+              All products well stocked ✓
+            </p>
+          ) : (
+            <div className="space-y-0">
+              {lowStockProducts.slice(0, 6).map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-3 py-2.5"
+                  style={{ borderBottom: "1px solid rgba(44,35,32,0.06)" }}
+                >
+                  <div
+                    className="w-9 h-11 rounded-lg overflow-hidden flex-shrink-0"
+                    style={{ backgroundColor: "rgba(44,35,32,0.06)" }}
+                  >
+                    {product.images?.[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package
+                          size={14}
+                          style={{ color: "rgba(44,35,32,0.25)" }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-sm font-medium truncate"
+                      style={{ color: "#2c2320" }}
+                    >
+                      {product.name}
+                    </p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <AlertTriangle
+                        size={11}
+                        style={{
+                          color:
+                            product.stock === 0 ? "#ef4444" : "#f59e0b",
+                        }}
+                      />
+                      <span
+                        className="text-xs font-medium"
+                        style={{
+                          color:
+                            product.stock === 0 ? "#ef4444" : "#f59e0b",
+                        }}
+                      >
+                        {product.stock === 0
+                          ? "Out of stock"
+                          : `${product.stock} left`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div style={CARD_STYLE} className="p-6">
+          <h3 className="font-semibold mb-4" style={{ color: "#2c2320" }}>
+            Quick Actions
+          </h3>
+          <div className="space-y-3">
+            <Link
+              to="/admin/products"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#2c2320", color: "white" }}
+            >
+              <Plus size={16} />
+              Add New Product
+            </Link>
+            <Link
+              to="/admin/orders"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "white",
+                color: "#2c2320",
+                border: "1.5px solid rgba(44,35,32,0.18)",
+              }}
+            >
+              <ShoppingBag size={16} />
+              View All Orders
+            </Link>
+            <Link
+              to="/admin/categories"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "white",
+                color: "#2c2320",
+                border: "1.5px solid rgba(44,35,32,0.18)",
+              }}
+            >
+              <Package size={16} />
+              Manage Categories
+            </Link>
+            <Link
+              to="/admin/inventory"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "rgba(196,122,128,0.08)",
+                color: "#c47a80",
+                border: "1.5px solid rgba(196,122,128,0.2)",
+              }}
+            >
+              <Warehouse size={16} />
+              Check Inventory
+            </Link>
+          </div>
+        </div>
       </div>
+
+      {/* Sales Chart */}
+      <SalesChart />
     </div>
   );
 }
