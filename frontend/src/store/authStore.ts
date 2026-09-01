@@ -11,6 +11,18 @@ interface AuthState {
   updateUser: (user: Partial<User>) => void;
 }
 
+// Helper — check if a JWT is expired without a library
+function isTokenExpired(token: string | null): boolean {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    // exp is in seconds; Date.now() is in ms
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -41,6 +53,16 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      // On rehydration: if the stored token is expired, wipe the state
+      onRehydrateStorage: () => (state) => {
+        if (state && isTokenExpired(state.token)) {
+          state.user = null;
+          state.token = null;
+          state.isAuthenticated = false;
+          localStorage.removeItem("auracart_token");
+          localStorage.removeItem("auracart_user");
+        }
+      },
     }
   )
 );
