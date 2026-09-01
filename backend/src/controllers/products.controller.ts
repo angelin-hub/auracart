@@ -188,13 +188,24 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
 };
 
 // ── Admin CRUD ────────────────────────────────────────────────────────────────
+
+/** Convert empty strings to null so the DB doesn't choke on "" for UUID/decimal fields */
+function sanitize(data: Record<string, any>) {
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(data)) {
+    out[k] = v === "" ? null : v;
+  }
+  return out;
+}
+
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
-  const data = req.body;
-  const slug = data.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  const raw = req.body;
+  const data = sanitize(raw);
+  const slug = String(data.name).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
   const [product] = await db
     .insert(products)
-    .values({ ...data, slug })
+    .values({ ...data, slug } as any)
     .returning();
 
   res.status(201).json({ success: true, data: { product } });
@@ -202,10 +213,11 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const updates = req.body;
+  const raw = req.body;
+  const updates = sanitize(raw);
 
   if (updates.name) {
-    updates.slug = updates.name
+    updates.slug = String(updates.name)
       .toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "");
@@ -213,7 +225,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 
   const [product] = await db
     .update(products)
-    .set({ ...updates, updatedAt: new Date() })
+    .set({ ...(updates as any), updatedAt: new Date() })
     .where(eq(products.id, id))
     .returning();
 
